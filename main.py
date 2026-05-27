@@ -1,37 +1,43 @@
-from fastapi import FastAPI, Query, HTTPException
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
 import yt_dlp
 import requests
 
 app = FastAPI()
 
-def get_direct(video_url):
+@app.get("/stream")
+def stream(id: str):
+
+    yt_url = f"https://www.youtube.com/watch?v={id}"
+
     opts = {
         "quiet": True,
         "format": "best",
-        "cookiefile": "cookies.txt"
-    }   
+        "cookiefile": "cookies.txt",
+        "extractor_args": {
+            "youtube": {
+                "player_client": ["android"]
+            }
+        }
+    }
+
     with yt_dlp.YoutubeDL(opts) as ydl:
-        info = ydl.extract_info(video_url, download=False)
+        info = ydl.extract_info(yt_url, download=False)
 
-        formats = info.get("formats", [])
+    formats = info.get("formats", [])
 
-        for f in reversed(formats):
-            if f.get("url"):
-                return f["url"]
+    stream_url = None
 
-    raise Exception("No stream URL")
+    for f in reversed(formats):
+        if f.get("url"):
+            stream_url = f["url"]
+            break
 
-
-@app.get("/stream")
-def stream(id: str = Query(...)):
-
-    yt = f"https://www.youtube.com/watch?v={id}"
-
-    direct = get_direct(yt)
+    if not stream_url:
+        raise HTTPException(500, "No stream URL found")
 
     r = requests.get(
-        direct,
+        stream_url,
         stream=True,
         headers={
             "User-Agent": "Mozilla/5.0"
@@ -39,7 +45,7 @@ def stream(id: str = Query(...)):
     )
 
     return StreamingResponse(
-        r.iter_content(65536),
+        r.iter_content(chunk_size=65536),
         media_type="video/mp4",
         headers={
             "Access-Control-Allow-Origin": "*"
