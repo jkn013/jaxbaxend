@@ -16,11 +16,10 @@ def stream(id: str):
         "cookiefile": "cookies.txt",
         "extractor_args": {
             "youtube": {
-                "player_client": ["tv", "android"]
+                "player_client": ["tv", "android", "web"]
             }
         }
     }
-
     with yt_dlp.YoutubeDL(opts) as ydl:
         info = ydl.extract_info(yt_url, download=False)
 
