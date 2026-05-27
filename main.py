@@ -8,13 +8,9 @@ app = FastAPI()
 def get_direct(video_url):
     opts = {
         "quiet": True,
-        "format": "best[ext=mp4]/best",
-        "extractor_args": {
-            "youtube": {
-                "player_client": ["android","web"]
-            }
-        }
-    }
+        "format": "best",
+        "cookiefile": "cookies.txt"
+    }   
     with yt_dlp.YoutubeDL(opts) as ydl:
         info = ydl.extract_info(video_url, download=False)
 
