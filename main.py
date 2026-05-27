@@ -12,7 +12,7 @@ def stream(id: str):
 
     opts = {
         "quiet": True,
-        "format": "best",
+        "format": "bv*+ba/b",
         "cookiefile": "cookies.txt",
         "extractor_args": {
             "youtube": {
